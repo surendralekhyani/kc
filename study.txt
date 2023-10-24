@@ -7,3 +7,4 @@ session
 body parser
 app.use
 .git
+restart AutoIncrement field in MySql: TRUNCATE TABLE table_name;
