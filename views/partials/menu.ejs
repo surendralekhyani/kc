@@ -1,0 +1,133 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var rec = '<%- JSON.stringify(records) %>';
+    rec = JSON.parse(rec);
+    var elements = document.querySelectorAll("a.mainMenu");
+    elements.forEach(function(element, idx) {
+      element.style.display = "none";
+      const found = rec.find((jElement) => jElement.menuoption == element.textContent);
+      if (found === undefined) {
+        // console.log(element.textContent + " " + element.style.display);
+      }
+      else
+      {
+          element.style.display = "block";
+      }
+    });
+  
+
+
+
+  const expressionInput = document.getElementById("txtMenuEval");
+  const resultField = document.getElementById("txtMenuEvalResult");
+  // console.log(expressionInput);
+
+  // Add an event listener for the Enter key (keyCode 13)
+  expressionInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+          const expression = expressionInput.value;
+          try {
+              // Use the eval() function to evaluate the expression
+              const result = eval(expression);
+              resultField.value = result;
+          } catch (error) {
+              resultField.value = "Error";
+          }
+      }
+    });
+
+  }); // End - Doc ready
+</script>
+
+<nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary bg-dark border-bottom border-body" data-bs-theme="dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+      <img src="./images/logo.png" alt="Avatar Logo" style="width:30px;" class="rounded-pill">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
+      aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Masters
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item mainMenu" href="#">Organisation</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Customers</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Item Groups</a></li>
+            <li><a class="dropdown-item mainMenu" href="../items">Items</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Edit Items</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Edit Items (Group)</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Transactions
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item mainMenu" href="#">Quotation</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Purchase</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Sale</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Payment / Receipt</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Reminders</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Requirement</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Replacement</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Reports
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item mainMenu" href="#">Ledger</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Ledger Items</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Items Purchase And Sold</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Dues</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Search</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Day Book</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tools
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item mainMenu" href="#">Users</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">User Rights</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Reset Password</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Backup Data</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Admin Rights</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Duplicates</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Duplicate Customers</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Address Book</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Conclusions</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">To Do List</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Daily Cash</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Family</a></li>
+            <li><a class="dropdown-item mainMenu" href="#">Family Tree</a></li>
+          </ul>
+        </li>
+      </ul>
+      <form method="POST" action="/logout" class="d-flex" role="search" style="margin-bottom: -3px;">
+        <div class="row">
+          <div class="col-5">
+          <input class="form-control me-2" type="text" placeholder="calc" aria-label="" id="txtMenuEval" />
+          </div>
+          <div class="col-2">
+          <input class="form-control me-2" type="text" placeholder="" aria-label="" id="txtMenuEvalResult" readonly />
+          </div>
+          <div class="col-5">
+            <a style="text-decoration: none;" href="/logout">
+          <button class="btn btn-danger d-grid gap-2 col-12 mx-auto" type="button">
+            Logout
+          </button>
+        </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</nav>

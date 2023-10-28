@@ -1,0 +1,75 @@
+    
+    <%- include('../partials/header.ejs') %>
+    </head>
+<body class="container-fluid" style="margin-top: 80px;">
+    <%- include('../partials/menu.ejs') %>
+
+    <% if (messages.success) { %>
+    <div class="alert alert-success" role="alert"><%- messages.success %></div>
+    <% } %>
+
+    <% if (messages.error) { %>
+    <div class="alert alert-danger" role="alert"><%- messages.error %></div>
+    <% } %>
+
+    <a href="/items/add" class="btn btn-primary btn-md mb-2 rounded-0" tabindex="-1" role="button" aria-disabled="true">Add Item</a>
+    
+    <div style="height: 500px; overflow: auto; border: 1px solid lightgray;">
+        <% if(data.length) { %>
+        <table id="tbl1" class="table table-hover ">
+            <thead class="align-middle" style="position: sticky; top: 0;">
+                <tr class='table-light'>
+                    <th width="200px"></th>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Selling Price</th>
+                    <th scope="col">Purchase Price</th>
+                    <th width="200px">GST Rate</th>
+                    <th width="200px">HSN</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider align-middle" style="position: sticky; left: 0;">
+            <% for(var i = 0; i< data.length; i++) { %>
+                <tr>
+                    <td class="text-center">
+                        <a class="btn btn-success edit w-40" href="../items/edit/<%=data[i].itemRowId%>">Edit</a>
+                        <a class="btn btn-danger delete w-40" onclick="return alert('Are you sure want to delete this record?')" href="../items/delete/<%=data[i].itemRowId%>">Delete</a> 
+                    </td>
+                    <td><%= (i+1) %></td>
+                    <td><%= data[i].itemName%></td>
+                    <td><%= data[i].sellingPrice%></td>
+                    <td><%= data[i].pp%></td>
+                    <td><%= data[i].gstRate%></td>
+                    <td><%= data[i].hsn%></td>
+                </tr>
+            <% } %>
+            </tbody>
+        </table>
+    <% } %>
+    </div>        
+    <!-- if result is empty -->
+    <% if(!data.length) { %>
+        <p class="text-center">No users found!</p>
+    <% } %>
+        
+    <script>
+        $(document).ready(function(){
+            myDataTable = $('#tbl1').DataTable({
+			    paging: false,
+			    iDisplayLength: -1,
+			    aLengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
+			    dom: 'Bfrtip',
+			    select: true,
+		        buttons: [
+		            'copyHtml5',
+		            'excelHtml5',
+		            'csvHtml5'
+		        ],
+			});
+        });
+    </script>
+
+
+    <%- include('../partials/footer.ejs') %>
+</body>
+</html>

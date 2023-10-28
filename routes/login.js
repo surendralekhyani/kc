@@ -73,8 +73,16 @@ router.post("/login", (req, res) => {
     }); //query ends here
   });
     
-
-
+  // function noCacheOnLogout(req, res, next)
+  // {
+  //   res.setHeader("Cache-Control", "no-store, no-cache");
+  //   next();
+  // }
+  router.get('/logout', function(req, res) {    
+    req.session.destroy(function(err) {
+      return res.redirect("/");
+  });
+});
  
 // display home/dashboard page
 // router.get('/dashboard', function(req, res, next) {    

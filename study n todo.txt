@@ -1,0 +1,15 @@
+datatable
+date picker
+ajax
+sync- await - done
+validator - done
+session
+body parser
+app.use
+.git - Done
+restart AutoIncrement field in MySql - Done -  TRUNCATE TABLE table_name;
+-  devloper console
+
+---TODO
+- check if logged in then avoid login page
+- Page name if Page Not Found

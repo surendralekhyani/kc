@@ -4,22 +4,6 @@ const router = express.Router();
 const dbConn = require("../lib/db");
 const bcrypt = require("bcrypt");
 
-// display user page
-router.get("/", function (req, res, next) {
-  dbConn.query("SELECT * FROM users ORDER BY id desc", function (err, rows) {
-    if (err) {
-      req.flash("error", err);
-      // render to views/users/index.ejs
-      res.render("users", { data: "" });
-    } else {
-      // render to views/users/index.ejs
-      req.session.mynm = "Suri";
-      req.session.save();
-      const nm = req.session.mynm;
-      res.render("users", { data: rows, nm });
-    }
-  });
-});
 
 // display add user page
 router.get("/add", function (req, res, next) {

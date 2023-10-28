@@ -1,3 +1,37 @@
-<h1>ssss</h1>
-<%= nm.id + " is the session variable" %>
-<%= console.log(nm); %>
+        <%- include('./partials/header.ejs') %>
+    </head>
+
+    <body class="container" >
+        <%- include('./partials/menu.ejs') %>
+        <div class="card" style="margin-top: 80px;">
+            <div class="card-header">
+                <ul class="nav nav-pills w-100">
+                    <li class="nav-pill active">
+                        <a class="nav-link">Users</a>
+                    </li>
+                    <li class="nav-pill ml-auto">
+                        <a class="nav-link active" href="/users/add">Add User</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Position</th>
+                            <th width="200px">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <%- include('./partials/footer.ejs') %>
+    </body>
+</html>
