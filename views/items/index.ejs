@@ -1,6 +1,6 @@
     
     <%- include('../partials/header.ejs') %>
-    </head>
+</head>
 <body class="container-fluid" style="margin-top: 80px;">
     <%- include('../partials/menu.ejs') %>
 
@@ -33,7 +33,7 @@
                 <tr>
                     <td class="text-center">
                         <a class="btn btn-success edit w-40" href="../items/edit/<%=data[i].itemRowId%>">Edit</a>
-                        <a class="btn btn-danger delete w-40" onclick="return alert('Are you sure want to delete this record?')" href="../items/delete/<%=data[i].itemRowId%>">Delete</a> 
+                        <a class="btn btn-danger delete w-40" onclick="return confirm('Are you sure want to delete this record?')" href="../items/delete/<%=data[i].itemRowId%>">Delete</a> 
                     </td>
                     <td><%= (i+1) %></td>
                     <td><%= data[i].itemName%></td>

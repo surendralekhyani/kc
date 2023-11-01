@@ -1,4 +1,5 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const router = express.Router();
 const dbConn  = require('../lib/db');
  
@@ -22,164 +23,259 @@ router.get('/', function(req, res, next) {
       }); 
 });
 
-// // display add user page
-// router.get('/add', function(req, res, next) {    
-//     // render to add.ejs
-//     res.render('users/add', {
-//         name: '',
-//         email: '',
-//         position:''
-//     })
-// })
+// display add item page
+router.get('/add', function(req, res, next) {    
+    dbConn.query("SELECT userrowid,menuoption FROM userrights ORDER BY userrowid", function (err, rows) {
+        if (err) {
+            req.flash("error", err);
+            res.render('items');  
+        } else {
+            res.render('items/add', {
+                itemName: '',
+                sellingPrice: '',
+                pp:'',
+                gstRate:'',
+                hsn:'',
+                records: rows,
+            })
+        }
+      }); 
+})
 
-// // add a new user
-// router.post('/add', function(req, res, next) {    
 
-//     let name = req.body.name;
-//     let email = req.body.email;
-//     let position = req.body.position;
-//     let errors = false;
+let validateInputs = [
+    check("itemName", "Name can not be blank...").trim().notEmpty().escape()
+  ];
 
-//     if(name.length === 0 || email.length === 0 || position === 0) {
-//         errors = true;
+  let checkDuplicate = (itemName) => {
+    return new Promise((resolve, reject) => {
+      try {
+        dbConn.query(
+          ' SELECT * FROM `items` WHERE `itemName` = ?  ', itemName,
+          function (err, rows) {
+            if (err) {
+              reject(err)
+            }
+            if (rows.length > 0) {
+              resolve(true)
+            } else {
+              resolve(false)
+            }
+          }
+        );
+      } catch (err) {
+        reject(err);
+      }
+    });
+  };
+  
+let createNewRecord = (data) => {
+    return new Promise(async (resolve, reject) => {
+      // check email is exist or not
+      let isDuplicate = await checkDuplicate(data.itemName);
+      if (isDuplicate) {
+        reject(`This item "${data.itemName}" has already exist.`);
+      } 
+      let newRecordData = {
+        itemName: data.itemName,
+        sellingPrice: data.sellingPrice,
+        pp: data.pp,
+        gstRate: data.gstRate,
+        hsn: data.hsn,
+      };
+  
+        dbConn.query(
+          ' INSERT INTO items set ? ', newRecordData,
+          function (err, rows) {
+            if (err) {
+              reject(err)
+            }
+            resolve("Record Created successfully...");
+          }
+        );
+    });
+  };  
 
-//         // set flash message
-//         req.flash('error', "Please enter name and email and position");
-//         // render to add.ejs with flash message
-//         res.render('users/add', {
-//             name: name,
-//             email: email,
-//             position:position
-//         })
-//     }
+// add a new item
+router.post('/add', validateInputs, async function(req, res, next) {    
+    let errorsArr = [];
+    let validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+        let errors = Object.values(validationErrors.mapped());
+        errors.forEach((item) => {
+            errorsArr.push(item.msg);
+        });
+        req.flash("error", errorsArr);
+        return res.render("items/add", {
+            itemName: req.body.itemName,
+            sellingPrice: req.body.sellingPrice,
+            pp: req.body.pp,
+            gstRate: req.body.gstRate,
+            hsn: req.body.hsn
+        });
+    }
 
-//     // if no error
-//     if(!errors) {
+  //create a new item
+  let newRecord = {
+    itemName: req.body.itemName,
+    sellingPrice: req.body.sellingPrice,
+    pp: req.body.pp,
+    gstRate: req.body.gstRate,
+    hsn: req.body.hsn
+  };
+  try {
+    await createNewRecord(newRecord);
+    req.flash("success", "Record successfully added");
+    return res.redirect("/items");
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Some error..." + err);
+    res.render("items/add", {
+        itemName: req.body.itemName,
+        sellingPrice: req.body.sellingPrice,
+        pp: req.body.pp,
+        gstRate: req.body.gstRate,
+        hsn: req.body.hsn
+    });
+  }
+})
 
-//         var form_data = {
-//             name: name,
-//             email: email,
-//             position:position
-//         }
-        
-//         // insert query
-//         dbConn.query('INSERT INTO users SET ?', form_data, function(err, result) {
-//             //if(err) throw err
-//             if (err) {
-//                 req.flash('error', err)
-                 
-//                 // render to add.ejs
-//                 res.render('users/add', {
-//                     name: form_data.name,
-//                     email: form_data.email,
-//                     position:form_data.position
-//                 })
-//             } else {                
-//                 req.flash('success', 'User successfully added');
-//                 res.redirect('/users');
-//             }
-//         })
-//     }
-// })
-
-// // display edit user page
-// router.get('/edit/(:id)', function(req, res, next) {
-
-//     let id = req.params.id;
+// display edit page
+router.get('/edit/(:id)', function(req, res, next) {
+  dbConn.query("SELECT userrowid,menuoption FROM userrights ORDER BY userrowid", function (err, rows) {
+    if (err) {
+        req.flash("error", err);
+        res.render('items');  
+    } else {
+      let id = req.params.id;
    
-//     dbConn.query('SELECT * FROM users WHERE id = ' + id, function(err, rows, fields) {
-//         if(err) throw err
-         
-//         // if user not found
-//         if (rows.length <= 0) {
-//             req.flash('error', 'User not found with id = ' + id)
-//             res.redirect('/users')
-//         }
-//         // if user found
-//         else {
-//             // render to edit.ejs
-//             res.render('users/edit', {
-//                 title: 'Edit User', 
-//                 id: rows[0].id,
-//                 name: rows[0].name,
-//                 email: rows[0].email,
-//                 position: rows[0].position
-//             })
-//         }
-//     })
-// })
+      dbConn.query('SELECT * FROM items WHERE itemRowId = ' + id, function(err, rowsFound, fields) {
+          if(err) 
+          {
+              req.flash('error', 'Record not found with id = ' + RowId)
+              res.redirect('/items')
+          }
+           
+          // if Record not found
+          if (rows.length <= 0) {
+              req.flash('error', 'Record not found with id = ' + RowId)
+              res.redirect('/items')
+          }
+          // if Record found
+          else {
+              res.render('items/edit', {
+                  title: 'Edit Item', 
+                  id: rowsFound[0].itemRowId,
+                  itemName: rowsFound[0].itemName,
+                  sellingPrice: rowsFound[0].sellingPrice,
+                  pp: rowsFound[0].pp,
+                  gstRate: rowsFound[0].gstRate,
+                  hsn: rowsFound[0].hsn,
+                  records: rows,
+              })
+          }
+      }); // End- Select Query
+    } // END - else
+  }); // END - menu Query
+}); // END- GET
 
-// // update user data
-// router.post('/update/:id', function(req, res, next) {
 
-//     let id = req.params.id;
-//     let name = req.body.name;
-//     let email = req.body.email;
-//     let position = req.body.position;
-//     let errors = false;
 
-//     if(name.length === 0 || email.length === 0 || position.length === 0) {
-//         errors = true;
-        
-//         // set flash message
-//         req.flash('error', "Please enter name and email and position");
-//         // render to add.ejs with flash message
-//         res.render('users/edit', {
-//             id: req.params.id,
-//             name: name,
-//             email: email,
-//             position:position
-//         })
-//     }
+  
+let updateRecord = (data, id) => {
+  return new Promise( (resolve, reject) => {
+    // let isDuplicate = await checkDuplicate(data.itemName);
+    // if (isDuplicate) {
+    //   reject(`This item "${data.itemName}" has already exist.`);
+    // } 
+    console.log(id);
+    let form_data = {
+      itemName: data.itemName,
+      sellingPrice: data.sellingPrice,
+      pp: data.pp,
+      gstRate: data.gstRate,
+      hsn: data.hsn,
+    };
+        // update query
+        dbConn.query('UPDATE items SET ? WHERE itemRowId = ' + id, form_data, 
+          function(err, result) {
+          if (err) {
+            reject(err)
+          }
+          resolve("Record Updated successfully...");
+        }
+      );
+  });
+};  
 
-//     // if no error
-//     if( !errors ) {   
- 
-//         var form_data = {
-//             name: name,
-//             email: email,
-//             position:position
-//         }
-//         // update query
-//         dbConn.query('UPDATE users SET ? WHERE id = ' + id, form_data, function(err, result) {
-//             //if(err) throw err
-//             if (err) {
-//                 // set flash message
-//                 req.flash('error', err)
-//                 // render to edit.ejs
-//                 res.render('users/edit', {
-//                     id: req.params.id,
-//                     name: form_data.name,
-//                     email: form_data.email,
-//                     position: form_data.position
-//                 })
-//             } else {
-//                 req.flash('success', 'User successfully updated');
-//                 res.redirect('/users');
-//             }
-//         })
-//     }
-// })
+// update data
+router.post('/update/:id', validateInputs, async function(req, res, next) {
+  let id = req.params.id;
+  let errorsArr = [];
+    let validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+        let errors = Object.values(validationErrors.mapped());
+        errors.forEach((item) => {
+            errorsArr.push(item.msg);
+        });
+        req.flash("error", errorsArr);
+        return res.render("items/edit", {
+            itemName: req.body.itemName,
+            sellingPrice: req.body.sellingPrice,
+            pp: req.body.pp,
+            gstRate: req.body.gstRate,
+            hsn: req.body.hsn
+        });
+    }
+
+  //update item
+  let recordData = {
+    itemName: req.body.itemName,
+    sellingPrice: req.body.sellingPrice,
+    pp: req.body.pp,
+    gstRate: req.body.gstRate,
+    hsn: req.body.hsn
+  };
+  try {
+    await updateRecord(recordData, id);
+    req.flash("success", "Record successfully updated");
+    return res.redirect("/items");
+  } catch (err) {
+    // console.log(err);
+    req.flash("error", "Some error..." + err);
+    res.render("items/edit", {
+        itemName: req.body.itemName,
+        sellingPrice: req.body.sellingPrice,
+        pp: req.body.pp,
+        gstRate: req.body.gstRate,
+        hsn: req.body.hsn
+    });
+  }
+    
+
+})
    
-// // delete user
-// router.get('/delete/(:id)', function(req, res, next) {
-
-//     let id = req.params.id;
-     
-//     dbConn.query('DELETE FROM users WHERE id = ' + id, function(err, result) {
-//         //if(err) throw err
-//         if (err) {
-//             // set flash message
-//             req.flash('error', err)
-//             // redirect to user page
-//             res.redirect('/users')
-//         } else {
-//             // set flash message
-//             req.flash('success', 'User successfully deleted! ID = ' + id)
-//             // redirect to user page
-//             res.redirect('/users')
-//         }
-//     })
-// })
+// delete user
+router.get('/delete/(:id)', function(req, res, next) {
+    let id = req.params.id;
+    let form_data = {
+      deleted: 'Y',
+    };
+        // update query
+        dbConn.query('UPDATE items SET ? WHERE itemRowId = ' + id, form_data, function(err, result) {
+        //if(err) throw err
+        if (err) {
+            // set flash message
+            req.flash('error', err)
+            // redirect to user page
+            res.redirect('/items')
+        } else {
+            // set flash message
+            req.flash('success', 'Record deleted successfully ! ID = ' + id)
+            // redirect to user page
+            res.redirect('/items')
+        }
+    })
+})
 
 module.exports = router;
