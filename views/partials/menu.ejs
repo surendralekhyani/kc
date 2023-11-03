@@ -1,19 +1,22 @@
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    var rec = '<%- JSON.stringify(records) %>';
-    rec = JSON.parse(rec);
-    var elements = document.querySelectorAll("a.mainMenu");
-    elements.forEach(function(element, idx) {
-      element.style.display = "none";
-      const found = rec.find((jElement) => jElement.menuoption == element.textContent);
-      if (found === undefined) {
-        // console.log(element.textContent + " " + element.style.display);
-      }
-      else
-      {
-          element.style.display = "block";
-      }
-    });
+    if( records && JSON.stringify(records.length)>0 )
+    {
+      var rec = '<%- JSON.stringify(records) %>';
+      rec = JSON.parse(rec);
+      var elements = document.querySelectorAll("a.mainMenu");
+      elements.forEach(function(element, idx) {
+        element.style.display = "none";
+        const found = rec.find((jElement) => jElement.menuoption == element.textContent);
+        if (found === undefined) {
+          // console.log(element.textContent + " " + element.style.display);
+        }
+        else
+        {
+            element.style.display = "block";
+        }
+      }); // forEach Loop END
+    } // if ENDS
   
 
 

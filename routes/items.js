@@ -2,44 +2,73 @@ const express = require('express');
 const { check, validationResult } = require('express-validator');
 const router = express.Router();
 const dbConn  = require('../lib/db');
- 
-// display user page
-router.get('/', function(req, res, next) {   
-    dbConn.query("SELECT userrowid,menuoption FROM userrights ORDER BY userrowid", function (err, rows) {
-        if (err) {
-            req.flash("error", err);
-            res.render('items');  
-        } else {
-            const nm = req.session.user;
-            dbConn.query('SELECT * FROM items WHERE deleted="N" ORDER BY itemRowId desc',function(err,data)     {
-                if(err) {
-                    req.flash('error', err);
-                    res.render('items',{data:''});   
-                } else {
-                    res.render('items',{'records': rows, 'data': data });
-                }
-            });
+
+let getMenuOptions = () => {
+  return new Promise(async (resolve, reject) => {
+      dbConn.query(
+        "SELECT userrowid,menuoption FROM userrights ORDER BY userrowid",
+        function (err, rows) {
+          if (err) {
+            reject(err)
+          }
+          resolve(rows);
         }
-      }); 
+      );
+  });
+}; 
+
+// display page
+router.get('/', async function(req, res, next) {  
+  try{
+    let rowsMenu = await getMenuOptions();
+    if(rowsMenu.length>0)
+    {
+      const nm = req.session.user;
+          dbConn.query('SELECT * FROM items WHERE deleted="N" ORDER BY itemRowId desc',function(err,data)     {
+              if(err) {
+                  req.flash('error', err);
+                  res.render('items',{data:''});   
+              } else {
+                  res.render('items',{'records': rowsMenu, 'data': data });
+              }
+          });
+    }
+    else{
+      console.log("No Menu Item");
+    }
+  }
+  catch(err){
+    req.flash("error", err);
+    res.render('items'); 
+  }
 });
 
-// display add item page
-router.get('/add', function(req, res, next) {    
-    dbConn.query("SELECT userrowid,menuoption FROM userrights ORDER BY userrowid", function (err, rows) {
-        if (err) {
-            req.flash("error", err);
-            res.render('items');  
-        } else {
-            res.render('items/add', {
-                itemName: '',
-                sellingPrice: '',
-                pp:'',
-                gstRate:'',
-                hsn:'',
-                records: rows,
-            })
-        }
-      }); 
+//========================================================================//
+
+
+// display add page
+router.get('/add', async function(req, res, next) {    
+  try{
+    let rowsMenu = await getMenuOptions();
+    if(rowsMenu.length>0)
+    {
+        res.render('items/add', {
+          itemName: '',
+          sellingPrice: '',
+          pp:'',
+          gstRate:'',
+          hsn:'',
+          records: rowsMenu,
+      })
+    }
+    else{
+      console.log("No Menu Item");
+    }
+  }
+  catch(err){
+    req.flash("error", err);
+    res.render('items'); 
+  }
 })
 
 
@@ -47,11 +76,19 @@ let validateInputs = [
     check("itemName", "Name can not be blank...").trim().notEmpty().escape()
   ];
 
-  let checkDuplicate = (itemName) => {
+  let checkDuplicate = (itemName, rowId) => {
     return new Promise((resolve, reject) => {
       try {
+        if(rowId == 0) // when new record inserting
+        {
+          var sql = " SELECT * FROM `items` WHERE `itemName` = '" + itemName + "'" 
+        }
+        else // // when Existing record Updating
+        {
+          var sql = " SELECT * FROM `items` WHERE `itemName` = '" + itemName + "' AND NOT `itemRowId` = " + rowId 
+        }
         dbConn.query(
-          ' SELECT * FROM `items` WHERE `itemName` = ?  ', itemName,
+          sql,
           function (err, rows) {
             if (err) {
               reject(err)
@@ -72,9 +109,10 @@ let validateInputs = [
 let createNewRecord = (data) => {
     return new Promise(async (resolve, reject) => {
       // check email is exist or not
-      let isDuplicate = await checkDuplicate(data.itemName);
+      let isDuplicate = await checkDuplicate(data.itemName, 0);
       if (isDuplicate) {
         reject(`This item "${data.itemName}" has already exist.`);
+        return;
       } 
       let newRecordData = {
         itemName: data.itemName,
@@ -111,7 +149,8 @@ router.post('/add', validateInputs, async function(req, res, next) {
             sellingPrice: req.body.sellingPrice,
             pp: req.body.pp,
             gstRate: req.body.gstRate,
-            hsn: req.body.hsn
+            hsn: req.body.hsn,
+            records: ''
         });
     }
 
@@ -129,26 +168,31 @@ router.post('/add', validateInputs, async function(req, res, next) {
     return res.redirect("/items");
   } catch (err) {
     console.log(err);
-    req.flash("error", "Some error..." + err);
+    req.flash("error", "Input Error: " + err);
     res.render("items/add", {
         itemName: req.body.itemName,
         sellingPrice: req.body.sellingPrice,
         pp: req.body.pp,
         gstRate: req.body.gstRate,
-        hsn: req.body.hsn
+        hsn: req.body.hsn,
+        records: ''
     });
   }
 })
 
+
+
+//========================================================================//
+
+
+
 // display edit page
-router.get('/edit/(:id)', function(req, res, next) {
-  dbConn.query("SELECT userrowid,menuoption FROM userrights ORDER BY userrowid", function (err, rows) {
-    if (err) {
-        req.flash("error", err);
-        res.render('items');  
-    } else {
+router.get('/edit/(:id)', async function(req, res, next) {
+  try{
+    let rowsMenu = await getMenuOptions();
+    if(rowsMenu.length>0)
+    {
       let id = req.params.id;
-   
       dbConn.query('SELECT * FROM items WHERE itemRowId = ' + id, function(err, rowsFound, fields) {
           if(err) 
           {
@@ -157,7 +201,7 @@ router.get('/edit/(:id)', function(req, res, next) {
           }
            
           // if Record not found
-          if (rows.length <= 0) {
+          if (rowsFound.length <= 0) {
               req.flash('error', 'Record not found with id = ' + RowId)
               res.redirect('/items')
           }
@@ -171,24 +215,31 @@ router.get('/edit/(:id)', function(req, res, next) {
                   pp: rowsFound[0].pp,
                   gstRate: rowsFound[0].gstRate,
                   hsn: rowsFound[0].hsn,
-                  records: rows,
+                  records: rowsMenu,
               })
           }
       }); // End- Select Query
-    } // END - else
-  }); // END - menu Query
+    } // END - if(rowsMenu.length>0)
+    else{
+      console.log("No Menu Item");
+    }
+  }
+  catch(err){
+    req.flash("error", err);
+    res.render('items'); 
+  }
 }); // END- GET
 
 
 
   
 let updateRecord = (data, id) => {
-  return new Promise( (resolve, reject) => {
-    // let isDuplicate = await checkDuplicate(data.itemName);
-    // if (isDuplicate) {
-    //   reject(`This item "${data.itemName}" has already exist.`);
-    // } 
-    console.log(id);
+  return new Promise( async (resolve, reject) => {
+    let isDuplicate = await checkDuplicate(data.itemName, id);
+    if (isDuplicate) {
+      reject(`This item "${data.itemName}" has already exist.`);
+      return;
+    } 
     let form_data = {
       itemName: data.itemName,
       sellingPrice: data.sellingPrice,
@@ -224,7 +275,8 @@ router.post('/update/:id', validateInputs, async function(req, res, next) {
             sellingPrice: req.body.sellingPrice,
             pp: req.body.pp,
             gstRate: req.body.gstRate,
-            hsn: req.body.hsn
+            hsn: req.body.hsn,
+            records: ''
         });
     }
 
@@ -242,19 +294,28 @@ router.post('/update/:id', validateInputs, async function(req, res, next) {
     return res.redirect("/items");
   } catch (err) {
     // console.log(err);
-    req.flash("error", "Some error..." + err);
+    req.flash("error", "Input Error: " + err);
     res.render("items/edit", {
+        id: id,
         itemName: req.body.itemName,
         sellingPrice: req.body.sellingPrice,
         pp: req.body.pp,
         gstRate: req.body.gstRate,
-        hsn: req.body.hsn
+        hsn: req.body.hsn,
+        records: ''
     });
   }
     
 
 })
-   
+
+
+
+//========================================================================//
+
+
+
+
 // delete user
 router.get('/delete/(:id)', function(req, res, next) {
     let id = req.params.id;

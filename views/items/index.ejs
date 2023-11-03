@@ -1,7 +1,7 @@
     
     <%- include('../partials/header.ejs') %>
 </head>
-<body class="container-fluid" style="margin-top: 80px;">
+<body class="container" style="margin-top: 80px;">
     <%- include('../partials/menu.ejs') %>
 
     <% if (messages.success) { %>
@@ -14,12 +14,13 @@
 
     <a href="/items/add" class="btn btn-primary btn-md mb-2 rounded-0" tabindex="-1" role="button" aria-disabled="true">Add Item</a>
     
-    <div style="height: 500px; overflow: auto; border: 1px solid lightgray;">
+    <div style="height: 500px; overflow: auto; border: 1px solid rgb(245, 245, 245); padding: 3px 10px 0;">
         <% if(data.length) { %>
-        <table id="tbl1" class="table table-hover ">
-            <thead class="align-middle" style="position: sticky; top: 0;">
-                <tr class='table-light'>
-                    <th width="200px"></th>
+        <table id="tbl1" class="table table-hover compact">
+            <thead class="align-middle">
+                <tr class=''>
+                    <th width="150px"></th>
+                    <th scope="col">RowId</th>
                     <th scope="col">#</th>
                     <th scope="col">Name</th>
                     <th scope="col">Selling Price</th>
@@ -31,10 +32,11 @@
             <tbody class="table-group-divider align-middle" style="position: sticky; left: 0;">
             <% for(var i = 0; i< data.length; i++) { %>
                 <tr>
-                    <td class="text-center">
-                        <a class="btn btn-success edit w-40" href="../items/edit/<%=data[i].itemRowId%>">Edit</a>
+                    <td class="text-left">
+                        <a class="btn btn-dark edit w-40" href="../items/edit/<%=data[i].itemRowId%>">Edit</a>
                         <a class="btn btn-danger delete w-40" onclick="return confirm('Are you sure want to delete this record?')" href="../items/delete/<%=data[i].itemRowId%>">Delete</a> 
                     </td>
+                    <td><%= data[i].itemRowId %></td>
                     <td><%= (i+1) %></td>
                     <td><%= data[i].itemName%></td>
                     <td><%= data[i].sellingPrice%></td>
@@ -55,16 +57,16 @@
     <script>
         $(document).ready(function(){
             myDataTable = $('#tbl1').DataTable({
+                dom: '<"top"iflp<"clear">>rt',
 			    paging: false,
-			    iDisplayLength: -1,
-			    aLengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
-			    dom: 'Bfrtip',
-			    select: true,
-		        buttons: [
-		            'copyHtml5',
-		            'excelHtml5',
-		            'csvHtml5'
-		        ],
+
+                //// Column Visibility
+                columnDefs: [
+                {
+                    target: 1,
+                    visible: false,
+                    searchable: false
+                }]
 			});
         });
     </script>

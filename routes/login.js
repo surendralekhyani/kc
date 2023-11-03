@@ -12,7 +12,7 @@ router.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    dbConn.query('SELECT * FROM users WHERE email = ?', [email], async (error, results) => 
+    dbConn.query("SELECT * FROM users WHERE deleted='N' AND email = ?", [email], async (error, results) => 
     {
         if (error) 
         {

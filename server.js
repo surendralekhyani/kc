@@ -55,7 +55,7 @@ function authMiddleware(req, res, next)
 // Setting Routers
     app.use('/', loginRouter);
     app.use('/users', usersRouter);
-    app.use('/items', itemsRouter);
+    app.use('/items', authMiddleware, itemsRouter);
     // app.use('/dashboard', dashboardRouter);
 
     app.get('/dashboard', authMiddleware, function(req, res, next) { 

@@ -4,16 +4,53 @@ const router = express.Router();
 const dbConn = require("../lib/db");
 const bcrypt = require("bcrypt");
 
+let checkAlreadyCreated = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      dbConn.query(
+        "SELECT * FROM `users` WHERE `deleted` = 'N'",
+        function (err, rows) {
+          if (err) {
+            reject(err)
+          }
+          if (rows.length > 0) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+        }
+      );
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
 
 // display add user page
-router.get("/add", function (req, res, next) {
-  // render to add.ejs
-  res.render("users/add", {
-    name: "dddd",
-    email: "abc@gmail.com",
-    password: "12345",
-    confirmPassword: "12345",
-  });
+router.get("/add", async function (req, res, next) {
+  try{
+    let foundUser = await checkAlreadyCreated();
+    if (foundUser) 
+    {
+      req.flash("error",'One user already registered... Others can be created after login...');
+      // reject(`One user already registered... Others can be created after login...`);
+      res.render('login',{data: 'temp'});  
+    } 
+    else 
+    {
+      // render to add.ejs
+      res.render("users/add", {
+        name: "dddd",
+        email: "abc@gmail.com",
+        password: "12345",
+        confirmPassword: "12345",
+       });
+    }
+  }
+  catch(err)
+  {
+    res.send(err);
+  }
 });
 
 let validateInputs = [
