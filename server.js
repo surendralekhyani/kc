@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const express = require('express');
+const dbConn = require("./lib/db");
 const path = require('path'); // https://nodejs.dev/en/learn/nodejs-file-paths/
 const flash = require('express-flash'); // Flash Messages for your Express Application
 const session = require('express-session'); // for session
@@ -7,9 +8,13 @@ const loginRouter = require('./routes/login');
 const usersRouter = require('./routes/users');
 const itemsRouter = require('./routes/items');
 const { error } = require('console');
-const dbConn = require("./lib/db");
 
 const app = express();
+
+console.log(process.env.DB_HOST);
+console.log(process.env.DB_USERNAME);
+console.log(process.env.DB_PASSWORD);
+console.log(process.env.DB_DBNAME);
 
 // app.get('/', (req, res) => {
 //     res.send("Yo!, This is home page" + " Current Directory is: " + __dirname);
@@ -76,7 +81,12 @@ app.use(function(req, res, next) {
 });
 
 
+const PORT = process.env.PORT || 3420
 
-app.listen(3420, ()=>{
-    console.log("Server running at http://localhost:3420");
-  });
+const listener = app.listen(PORT, () => {
+    console.log("Server running at http://localhost:" + listener.address().port)
+});
+
+// app.listen(3420, ()=>{
+//     console.log("Server running at " + listener.address().port);
+//   });
